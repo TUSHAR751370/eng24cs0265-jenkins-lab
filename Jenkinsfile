@@ -1,12 +1,10 @@
 pipeline {
-    agent any
-    stages {
-        stage('Checkout') {
-            steps {
-                checkout scm
-                sh 'ls -la'
-            }
+    agent {
+        docker {
+            image 'python:3.11-slim'
         }
+    }
+    stages {
         stage('Build / Lint') {
             steps {
                 sh 'python3 -m py_compile calculator.py'
@@ -14,19 +12,8 @@ pipeline {
         }
         stage('Test') {
             steps {
-                sh 'python3 -m pytest -v'
+                sh 'pip install pytest && python3 -m pytest -v'
             }
-        }
-        stage('Package / Artifact') {
-            steps {
-                sh 'tar -czvf app.tar.gz calculator.py test_calculator.py'
-                archiveArtifacts artifacts: 'app.tar.gz', fingerprint: true
-            }
-        }
-    }
-    post {
-        always {
-            echo 'Pipeline execution complete.'
         }
     }
 }
